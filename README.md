@@ -1,5 +1,5 @@
 # DynamicResourceAllocator (DRA)
-Code for "Dynamic allocation of limited memory resources in reinforcement learning", NeurIPS 2020.
+Code for "Nisheet Patel, Luigi Acerbi, and Alexandre Pouget. Dynamic allocation of limited memory resources in reinforcement learning. _NeurIPS_ 2020."
 
 ## Installation
 All scripts are written in Python and have been tested with Python 3.7.2. 
