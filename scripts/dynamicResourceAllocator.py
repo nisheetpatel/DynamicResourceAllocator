@@ -2,10 +2,10 @@ import gym
 import numpy as np
 
 class GradientBasedResourceAllocator:                                         #
-    def __init__(self, episodes=int(1e4), learning_q=0.2, learning_sigma=0.1,
+    def __init__(self, episodes=int(5e3), learning_q=0.2, learning_sigma=0.1,
                 discount=1, nRestarts=1, nTraj=10, environment='MountainCar',
                 policy='Thompson', exploration=10, lmda=0.1, gradient='A',
-                explore_slowly=True):
+                explore_slowly=True, render=False):
         self.episodes       = episodes
         self.nRestarts      = nRestarts     # currently not implemented
         self.learning_q     = learning_q
@@ -23,6 +23,7 @@ class GradientBasedResourceAllocator:                                         #
                     'MountainCar': gym.make('MountainCar-v0')}
         self.env = env_dict[environment]
         self.envName = environment
+        self.render = render
 
         # Initialising q-distribution: N(q, diag(sigma)^2)
         self.q  = np.random.uniform(low = -1, high = 1, 
@@ -36,6 +37,32 @@ class GradientBasedResourceAllocator:                                         #
         b = np.max(self.exploration*x)      # Trick to avoid overflow errors
         y = np.exp(self.exploration*x - b)  # during numerical calculations
         return y/y.sum()
+
+    # the cost function
+    @staticmethod
+    def kl_mvn(m0, S0, m1, S1):
+        """
+        Kullback-Liebler divergence from Gaussian m0,S0 to Gaussian m1,S1.
+        Diagonal covariances are assumed.  Divergence is expressed in nats.
+        """    
+        # store inv diag covariance of S1 and diff between means
+        N = m0.shape[0]
+        iS1 = np.linalg.inv(S1)
+        diff = m1 - m0
+
+        # three terms of the KL divergence
+        tr_term   = np.trace(iS1 @ S0)
+        #det_term  = np.log(np.linalg.det(S1)/np.linalg.det(S0))
+        det_term  = np.trace(np.ma.log(S1)) - np.trace(np.ma.log(S0))
+        quad_term = diff.T @ np.linalg.inv(S1) @ diff 
+        return .5 * (tr_term + det_term + quad_term - N)
+
+    def computeCost(self):
+        # Computing the cost of the current memories
+        q = self.q.flatten()
+        S1 = np.diag(np.square(self.sigma.flatten()))
+        S0 = np.diag(np.square(np.ones(len(self.sigma.flatten()))*5))
+        return (self.lmda * self.kl_mvn(q,S1,q,S0))
 
     def act(self, state):        
         # Soft thompson sampling: softmax applied instead of max
@@ -72,7 +99,7 @@ class GradientBasedResourceAllocator:                                         #
 
             while not done:
                 # Render environment for last five episodes
-                if ii >= (self.episodes - 5):
+                if (ii >= (self.episodes - 5)) & (self.render==True):
                     self.env.render()
 
                 # Determine next action
@@ -183,24 +210,6 @@ if __name__ == '__main__':
     from dynamicResourceAllocator import GradientBasedResourceAllocator
     import numpy as np
 
-    # Define the cost function
-    def kl_mvn(m0, S0, m1, S1):
-        """
-        Kullback-Liebler divergence from Gaussian m0,S0 to Gaussian m1,S1.
-        Diagonal covariances are assumed.  Divergence is expressed in nats.
-        """    
-        # store inv diag covariance of S1 and diff between means
-        N = m0.shape[0]
-        iS1 = np.linalg.inv(S1)
-        diff = m1 - m0
-
-        # three terms of the KL divergence
-        tr_term   = np.trace(iS1 @ S0)
-        #det_term  = np.log(np.linalg.det(S1)/np.linalg.det(S0))
-        det_term  = np.trace(np.ma.log(S1)) - np.trace(np.ma.log(S0))
-        quad_term = diff.T @ np.linalg.inv(S1) @ diff 
-        return .5 * (tr_term + det_term + quad_term - N)
-
     def discretizeState(obj, state):
         s = (state-obj.env.observation_space.low)*np.array([10,100])
         s = np.around(s, 0).astype(int)
@@ -213,16 +222,9 @@ if __name__ == '__main__':
         obj = GradientBasedResourceAllocator(gradient=gradient)
         rew = obj.learn()
 
-        # Expected reward
+        # Append to list of exp rewards, cost, and objective
         expR.append(rew)
-
-        # Compute cost
-        q = obj.q.flatten()
-        S1 = np.diag(np.square(obj.sigma.flatten()))
-        S0 = np.diag(np.square(np.ones(len(obj.sigma.flatten()))*5))
-        cost.append(obj.lmda * kl_mvn(q,S1,q,S0))
-
-        # Compute objective
+        cost.append(obj.computeCost())
         objective.append(expR[-1] - cost[-1])
     
     # Plotting
