@@ -39,6 +39,12 @@ class HuysTask:
         for i in range(nrows,Nrows,nrows):
             self.reward_matrix[i-nrows:i,i:i+nrows] = rewards
 
+        # Transitions, rewards, states
+        self.n_states = len(self.transition_matrix)
+        self.states = np.arange(self.n_states)
+        self.transitions = np.transpose(self.transition_matrix.nonzero())
+        self.rewards = np.array(self.reward_matrix[self.reward_matrix != 0])
+
 
 """
 Custom-made two-step T-maze with 14 states.
@@ -71,6 +77,7 @@ class Tmaze:
         self.reward_matrix[8,12] =  -5
         self.reward_matrix[9,11] = -10
         self.reward_matrix[9,13] =  5
+
         # Transitions, rewards, states
         self.n_states = len(self.transition_matrix)
         self.states = np.arange(self.n_states)
