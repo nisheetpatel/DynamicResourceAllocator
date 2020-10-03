@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # Repo folder
-./scripts/outcmaes/*
+*outcmaes*
