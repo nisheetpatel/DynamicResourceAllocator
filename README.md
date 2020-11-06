@@ -6,3 +6,6 @@ All scripts are written in Python and have been tested with Python 3.7.2. Instal
 
 ## Usage
 Clone the repository to a folder of your choice and run the files to reproduce the relevant figures in the paper. For using DRA with any of the environments from OpenAI gym, refer to the file ./scripts/dynamicResourceAllocator.py. For custom environments such as the 2D gridworld, refer to the files ./scripts/\*\_fig1\*.py, which reproduce the figures in the code and also provide additional examples of the implementation.
+
+## Summary of the work
+![NeurIPS2020_poster](/figures/NeurIPS_poster_final.pdf)
