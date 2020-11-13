@@ -9,4 +9,4 @@ Clone the repository to a folder of your choice and run the files to reproduce t
 
 ## Summary of the work
 ![NeurIPS2020_poster](/figures/NeurIPS_poster_final.png)
-[Here](https://github.com/nisheetpatel/DynamicResourceAllocator/figures/NeurIPS_poster_final.pdf) is the link to the high-resolution pdf poster.
+[Here](https://github.com/nisheetpatel/DynamicResourceAllocator/blob/master/figures/NeurIPS_poster_final.pdf) is the link to the high-resolution pdf poster.
